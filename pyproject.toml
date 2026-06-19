@@ -1,0 +1,74 @@
+[project]
+name = "byteful-sdk"
+version = "0.1.0a1"
+description = "Unofficial Python SDK for the byteful Public User API"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "AsyncAlchemist", email = "17990601+AsyncAlchemist@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+keywords = ["byteful", "proxy", "sdk", "isp", "residential", "mobile", "datacenter"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "requests>=2.32",
+]
+
+[project.urls]
+Homepage = "https://github.com/AsyncAlchemist/byteful-sdk"
+Repository = "https://github.com/AsyncAlchemist/byteful-sdk"
+Issues = "https://github.com/AsyncAlchemist/byteful-sdk/issues"
+Changelog = "https://github.com/AsyncAlchemist/byteful-sdk/blob/main/CHANGELOG.md"
+"API Documentation" = "https://documentation.byteful.com/"
+
+[build-system]
+requires = ["uv_build>=0.11.14,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# Distribution name is ``byteful-sdk`` but the import name (and the actual
+# package on disk under ``src/``) is ``byteful``.
+module-name = "byteful"
+
+[dependency-groups]
+dev = [
+    "aiohttp>=3.10",
+    "httpx>=0.28",
+    "pytest>=9.1.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=7.1.0",
+    "python-dotenv>=1.2.2",
+    "responses>=0.26.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+asyncio_mode = "strict"
+markers = [
+    "integration: hits the real byteful API; skipped without BYTEFUL_API_PUBLIC_KEY/_PRIVATE_KEY",
+]
+
+[tool.coverage.run]
+source = ["byteful"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "pragma: no cover",
+]
+show_missing = true
