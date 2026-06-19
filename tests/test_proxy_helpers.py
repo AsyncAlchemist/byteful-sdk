@@ -135,3 +135,27 @@ def test_proxy_protocol_enum_coercion() -> None:
     # Unknown value falls through as raw string (forward-compat).
     p2 = make_proxy(proxy_protocol="some_future_protocol")
     assert p2.proxy_protocol == "some_future_protocol"
+
+
+def test_availability_models_accept_bare_string() -> None:
+    """The availability/search endpoint returns bare country-id strings when
+    no ``group_by`` is supplied. Both Mobile and Residential models must
+    tolerate that shape — found live: 422-free queries returning lists of
+    ``"us"`` blew up with AttributeError before this was added."""
+    from byteful import MobileAvailability, ResidentialAvailability
+
+    m = MobileAvailability.from_api("us")
+    assert m.country_id == "us"
+    assert m.city_id is None
+
+    r = ResidentialAvailability.from_api("de")
+    assert r.country_id == "de"
+    assert r.city_id is None
+
+    # Structured shape still works.
+    m2 = MobileAvailability.from_api({
+        "country_id": "us", "city_id": 42, "mobile_availability_node_count": 100,
+    })
+    assert m2.country_id == "us"
+    assert m2.city_id == 42
+    assert m2.mobile_availability_node_count == 100

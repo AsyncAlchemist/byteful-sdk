@@ -1209,7 +1209,12 @@ class MobileAvailability:
     mobile_availability_node_count: int | None = None
 
     @classmethod
-    def from_api(cls, raw: dict[str, Any]) -> "MobileAvailability":
+    def from_api(cls, raw: dict[str, Any] | str) -> "MobileAvailability":
+        # The availability/search endpoint collapses to a flat list of bare
+        # string IDs when no ``group_by`` is supplied (the implicit grouping
+        # is by country). Wrap so the rest of the constructor still works.
+        if isinstance(raw, str):
+            raw = {"country_id": raw}
         return cls(
             country_id=_opt_str(raw.get("country_id")),
             country_name=_opt_str(raw.get("country_name")),
@@ -1248,7 +1253,10 @@ class ResidentialAvailability:
     residential_availability_node_count: int | None = None
 
     @classmethod
-    def from_api(cls, raw: dict[str, Any]) -> "ResidentialAvailability":
+    def from_api(cls, raw: dict[str, Any] | str) -> "ResidentialAvailability":
+        # See note on :meth:`MobileAvailability.from_api`.
+        if isinstance(raw, str):
+            raw = {"country_id": raw}
         return cls(
             country_id=_opt_str(raw.get("country_id")),
             country_name=_opt_str(raw.get("country_name")),
