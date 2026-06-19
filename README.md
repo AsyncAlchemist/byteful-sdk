@@ -1,5 +1,11 @@
 # byteful-sdk
 
+[![CI](https://github.com/AsyncAlchemist/byteful-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/AsyncAlchemist/byteful-sdk/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/AsyncAlchemist/byteful-sdk/graph/badge.svg)](https://codecov.io/gh/AsyncAlchemist/byteful-sdk)
+[![PyPI version](https://badge.fury.io/py/byteful-sdk.svg)](https://pypi.org/project/byteful-sdk/)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **Unofficial** — this project is a community-built client for
 > [byteful](https://byteful.com/) and is **not affiliated with, endorsed by,
 > or supported by byteful**. All trademarks belong to their respective
