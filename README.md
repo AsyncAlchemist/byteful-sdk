@@ -110,49 +110,65 @@ Generate keys at `dashboard.byteful.com/developer/api-key`.
 Methods on `BytefulClient` mirror the URL path 1:1, so you can find any
 documented endpoint by its URL:
 
-| URL                                              | Method                                  |
-| ------------------------------------------------ | --------------------------------------- |
-| `GET /customer/retrieve`                         | `customer_retrieve()`                   |
-| `GET /proxy/retrieve/{id}`                       | `proxy_retrieve(proxy_id)`              |
-| `GET /proxy/search`                              | `proxy_search(...)`                     |
-| `GET /proxy/list_by_search`                      | `proxy_list_by_search(...)`             |
-| `POST /proxy/list_by_id`                         | `proxy_list_by_id(proxy_ids, ...)`      |
-| `POST /proxy/list/options`                       | `proxy_list_options(...)`               |
-| `GET /proxy_user/retrieve/{id}`                  | `proxy_user_retrieve(id)`               |
-| `GET /proxy_user/search`                         | `proxy_user_search(...)`                |
-| `POST /proxy_user/create`                        | `proxy_user_create(...)`                |
-| `PATCH /proxy_user/edit/{id}`                    | `proxy_user_edit(id, ...)`              |
-| `DELETE /proxy_user/delete/{id}`                 | `proxy_user_delete(id)`                 |
-| `GET /proxy_user_acl/retrieve|search`            | `proxy_user_acl_retrieve` / `_search`   |
-| `POST /proxy_user_acl/create`                    | `proxy_user_acl_create(...)`            |
-| `DELETE /proxy_user_acl/delete/{id}`             | `proxy_user_acl_delete(id)`             |
-| `GET /service/retrieve|search`                   | `service_retrieve` / `_search`          |
-| `PATCH /service/edit/{id}`                       | `service_edit(id, ...)`                 |
-| `DELETE /service/cancel/{id}`                    | `service_cancel(id, ...)`               |
-| `GET /service_adjustment/retrieve|search`        | `service_adjustment_retrieve` / `_search` |
-| `GET /checkout/catalog`                          | `checkout_catalog()`                    |
-| `POST /checkout/quote`                           | `checkout_quote(...)`                   |
-| `POST /checkout/create`                          | `checkout_create(...)`                  |
-| `GET /mobile/list`                               | `mobile_list(...)`                      |
-| `GET /mobile/summary`                            | `mobile_summary()`                      |
-| `GET /mobile_availability/count|search`          | `mobile_availability_count` / `_search` |
-| `GET /mobile_ledger/retrieve|search`             | `mobile_ledger_retrieve` / `_search`    |
-| `GET /residential/list`                          | `residential_list(...)`                 |
-| `GET /residential/summary`                       | `residential_summary()`                 |
-| `GET /residential_availability/count|search`     | `residential_availability_count` / `_search` |
-| `GET /residential_ledger/retrieve|search`        | `residential_ledger_retrieve` / `_search` |
-| `GET /product/search`                            | `product_search(...)`                   |
-| `GET /analytics/breakdown|graph`                 | `analytics_breakdown` / `analytics_graph` |
-| `GET /log/retrieve|search`                       | `log_retrieve` / `log_search`           |
-| `GET /log_summary/retrieve|search`               | `log_summary_retrieve` / `_search`      |
-| `GET /proxy_test_server/search`                  | `proxy_test_server_search(...)`         |
-| `GET /country/retrieve|search`                   | `country_retrieve` / `_search`          |
-| `GET /city/retrieve|search`                      | `city_retrieve` / `_search`             |
-| `GET /subdivision/retrieve|search`               | `subdivision_retrieve` / `_search`      |
-| `GET /zip_code/retrieve|search`                  | `zip_code_retrieve` / `_search`         |
-| `GET /continent/retrieve|search`                 | `continent_retrieve` / `_search`        |
-| `GET /asn/retrieve|search`                       | `asn_retrieve` / `_search`              |
-| `GET /ip_address/geolocate/{ip}`                 | `ip_address_geolocate(ip)`              |
+| URL                                              | Method                                       |
+| ------------------------------------------------ | -------------------------------------------- |
+| `GET /customer/retrieve`                         | `customer_retrieve()`                        |
+| `GET /proxy/retrieve/{id}`                       | `proxy_retrieve(proxy_id)`                   |
+| `GET /proxy/search`                              | `proxy_search(...)`                          |
+| `GET /proxy/list_by_search`                      | `proxy_list_by_search(...)`                  |
+| `POST /proxy/list_by_id`                         | `proxy_list_by_id(proxy_ids, ...)`           |
+| `POST /proxy/list/options`                       | `proxy_list_options(...)`                    |
+| `GET /proxy_user/retrieve/{id}`                  | `proxy_user_retrieve(id)`                    |
+| `GET /proxy_user/search`                         | `proxy_user_search(...)`                     |
+| `POST /proxy_user/create`                        | `proxy_user_create(...)`                     |
+| `PATCH /proxy_user/edit/{id}`                    | `proxy_user_edit(id, ...)`                   |
+| `DELETE /proxy_user/delete/{id}`                 | `proxy_user_delete(id)`                      |
+| `GET /proxy_user_acl/retrieve/{id}`              | `proxy_user_acl_retrieve(id)`                |
+| `GET /proxy_user_acl/search`                     | `proxy_user_acl_search(...)`                 |
+| `POST /proxy_user_acl/create`                    | `proxy_user_acl_create(...)`                 |
+| `DELETE /proxy_user_acl/delete/{id}`             | `proxy_user_acl_delete(id)`                  |
+| `GET /service/retrieve/{id}`                     | `service_retrieve(id)`                       |
+| `GET /service/search`                            | `service_search(...)`                        |
+| `PATCH /service/edit/{id}`                       | `service_edit(id, ...)`                      |
+| `DELETE /service/cancel/{id}`                    | `service_cancel(id, ...)`                    |
+| `GET /service_adjustment/retrieve/{id}`          | `service_adjustment_retrieve(id)`            |
+| `GET /service_adjustment/search`                 | `service_adjustment_search(...)`             |
+| `GET /checkout/catalog`                          | `checkout_catalog()`                         |
+| `POST /checkout/quote`                           | `checkout_quote(...)`                        |
+| `POST /checkout/create`                          | `checkout_create(...)`                       |
+| `GET /mobile/list`                               | `mobile_list(...)`                           |
+| `GET /mobile/summary`                            | `mobile_summary()`                           |
+| `GET /mobile_availability/count`                 | `mobile_availability_count(...)`             |
+| `GET /mobile_availability/search`                | `mobile_availability_search(...)`            |
+| `GET /mobile_ledger/retrieve/{id}`               | `mobile_ledger_retrieve(id)`                 |
+| `GET /mobile_ledger/search`                      | `mobile_ledger_search(...)`                  |
+| `GET /residential/list`                          | `residential_list(...)`                      |
+| `GET /residential/summary`                       | `residential_summary()`                      |
+| `GET /residential_availability/count`            | `residential_availability_count(...)`        |
+| `GET /residential_availability/search`           | `residential_availability_search(...)`       |
+| `GET /residential_ledger/retrieve/{id}`          | `residential_ledger_retrieve(id)`            |
+| `GET /residential_ledger/search`                 | `residential_ledger_search(...)`             |
+| `GET /product/search`                            | `product_search(...)`                        |
+| `GET /analytics/breakdown`                       | `analytics_breakdown(...)`                   |
+| `GET /analytics/graph`                           | `analytics_graph(...)`                       |
+| `GET /log/retrieve/{id}`                         | `log_retrieve(id)`                           |
+| `GET /log/search`                                | `log_search(...)`                            |
+| `GET /log_summary/retrieve/{id}`                 | `log_summary_retrieve(id)`                   |
+| `GET /log_summary/search`                        | `log_summary_search(...)`                    |
+| `GET /proxy_test_server/search`                  | `proxy_test_server_search(...)`              |
+| `GET /country/retrieve/{id}`                     | `country_retrieve(id)`                       |
+| `GET /country/search`                            | `country_search(...)`                        |
+| `GET /city/retrieve/{id}`                        | `city_retrieve(id)`                          |
+| `GET /city/search`                               | `city_search(...)`                           |
+| `GET /subdivision/retrieve/{id}`                 | `subdivision_retrieve(id)`                   |
+| `GET /subdivision/search`                        | `subdivision_search(...)`                    |
+| `GET /zip_code/retrieve/{id}`                    | `zip_code_retrieve(id)`                      |
+| `GET /zip_code/search`                           | `zip_code_search(...)`                       |
+| `GET /continent/retrieve/{id}`                   | `continent_retrieve(id)`                     |
+| `GET /continent/search`                          | `continent_search(...)`                      |
+| `GET /asn/retrieve/{id}`                         | `asn_retrieve(id)`                           |
+| `GET /asn/search`                                | `asn_search(...)`                            |
+| `GET /ip_address/geolocate/{ip}`                 | `ip_address_geolocate(ip)`                   |
 
 Convenience helpers built on top of `proxy_search`:
 
