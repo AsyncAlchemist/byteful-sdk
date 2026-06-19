@@ -25,7 +25,9 @@ empty (account simply has no resources of that kind), the retrieve test
 
 from __future__ import annotations
 
+import ipaddress
 import os
+import random
 import re
 import uuid
 from typing import Generator
@@ -40,6 +42,8 @@ from byteful import (
     Continent,
     Country,
     Customer,
+    IcanhazipProvider,
+    IpifyProvider,
     Log,
     LogSummary,
     MobileLedger,
@@ -48,14 +52,17 @@ from byteful import (
     Product,
     Proxy,
     ProxyList,
+    ProxyStatus,
     ProxyTestServer,
     ProxyUser,
     ProxyUserAcl,
+    ProxyVerifier,
     ResidentialLedger,
     Service,
     ServiceAdjustment,
     Subdivision,
     UnauthorizedError,
+    VerificationError,
     ZipCode,
 )
 
@@ -679,3 +686,135 @@ def test_client_carries_api_request_id_through_to_error(client: BytefulClient) -
         )
     else:
         pytest.fail("expected an API error")
+
+
+# ============================================================================
+# Privacy suite: route real traffic through up to 5 random in_use proxies
+# and confirm the destination sees the proxy's declared egress, not our
+# real IP.
+#
+# This is the only block of tests that ships traffic *through* the
+# proxies (rather than only to the byteful API). It's still read-only
+# from byteful's perspective — bytes are billed at usage time, but a
+# single small HTTPS GET per proxy to a public "what's my IP" service is
+# negligible.
+#
+# Set ``BYTEFUL_TEST_SKIP_LEAK_CHECK=1`` in ``.env`` to skip this block
+# entirely (e.g. on offline CI runs).
+# ============================================================================
+
+LEAK_CHECK_SAMPLE_SIZE = 5
+LEAK_CHECK_TIMEOUT = 8.0
+
+
+def _skip_if_disabled() -> None:
+    if os.environ.get("BYTEFUL_TEST_SKIP_LEAK_CHECK"):
+        pytest.skip("BYTEFUL_TEST_SKIP_LEAK_CHECK is set")
+
+
+@pytest.fixture(scope="module")
+def in_use_proxy_sample(client: BytefulClient) -> list[Proxy]:
+    """Up to 5 random ``in_use`` proxies from the account.
+
+    ``in_use`` is the only status that actually routes traffic; the
+    others (``available``, ``waiting``, ``reserved``, ``pending_deletion``)
+    are not connectable. Skips the entire leak-check section when no
+    such proxies exist.
+    """
+    _skip_if_disabled()
+    pool = client.proxies()
+    candidates = [
+        p for p in pool
+        if p.proxy_status == ProxyStatus.IN_USE and (
+            p.proxy_ip_address or p.proxy_ip_address_v6
+        ) and p.default_proxy_user_username and p.default_proxy_user_password
+    ]
+    if not candidates:
+        pytest.skip(
+            f"no usable in_use proxies on account (pool size {len(pool)}); "
+            "leak check requires in_use status + an IP + default proxy_user creds"
+        )
+    rng = random.Random()  # intentionally non-deterministic across runs
+    sample_size = min(LEAK_CHECK_SAMPLE_SIZE, len(candidates))
+    return rng.sample(candidates, k=sample_size)
+
+
+def test_privacy_suite_no_leaks_across_random_in_use_proxies(
+    in_use_proxy_sample: list[Proxy],
+) -> None:
+    """Drive a "what's my IP" probe through up to 5 random in_use proxies
+    and verify the destination sees the proxy's declared egress.
+
+    A failure here means one or more proxies are not routing traffic the
+    way byteful's metadata claims — either the SDK is building the auth
+    URL wrong, the proxy is misconfigured, or your real IP is leaking
+    through. The test reports every per-proxy outcome so triage is
+    obvious from the failure message.
+
+    A short verifier chain (ipify -> icanhazip) keeps wall-clock latency
+    bounded; both endpoints return just the IP so there's nothing to
+    parse-fail on.
+    """
+    verifier = ProxyVerifier(
+        providers=[IpifyProvider(), IcanhazipProvider()],
+        timeout=LEAK_CHECK_TIMEOUT,
+    )
+
+    successes: list[tuple[str, str]] = []
+    leaks: list[tuple[str, str, str]] = []
+    chain_failures: list[tuple[str, str]] = []
+
+    with verifier:
+        for proxy in in_use_proxy_sample:
+            pid = proxy.proxy_id or "<unknown>"
+            try:
+                leak = verifier.check_leak(proxy)
+            except VerificationError as e:
+                chain_failures.append((pid, str(e)[:200]))
+                continue
+            seen = leak.result.ip
+            expected = leak.expected_ip
+            # Defensive: provider must have returned a syntactically-valid IP.
+            try:
+                ipaddress.ip_address(seen)
+            except ValueError:
+                chain_failures.append((pid, f"provider returned non-IP: {seen!r}"))
+                continue
+            if leak.leaked:
+                leaks.append((pid, seen, expected))
+            else:
+                successes.append((pid, seen))
+
+    # All proxies failed the chain — likely transient (provider down, network
+    # blip) rather than a proxy fault. Skip with full context.
+    if not successes and not leaks and chain_failures:
+        pytest.skip(
+            "every provider in the chain failed for every sampled proxy "
+            f"({len(chain_failures)} proxies): "
+            f"{chain_failures[0][1]}"
+        )
+
+    # Any actual leak is a hard failure with the full report.
+    if leaks:
+        details = "\n".join(
+            f"  - {pid}: saw {seen}, expected {expected}"
+            for pid, seen, expected in leaks
+        )
+        chain_detail = (
+            "\nProxies that couldn't be verified at all:\n"
+            + "\n".join(f"  - {pid}: {err}" for pid, err in chain_failures)
+        ) if chain_failures else ""
+        pytest.fail(
+            f"{len(leaks)}/{len(in_use_proxy_sample)} proxies LEAKED a "
+            f"different IP than the byteful-declared egress:\n{details}"
+            f"\nSuccesses ({len(successes)}): "
+            + ", ".join(pid for pid, _ in successes)
+            + chain_detail
+        )
+
+    # No leaks, at least one success — assert we actually checked something
+    # so the test can't silently pass on a sample of all-failed proxies.
+    assert successes, (
+        "no proxies were verified successfully; "
+        f"chain failures: {chain_failures}"
+    )
